@@ -22,11 +22,14 @@ await connectDB();
 // ── Security ──────────────────────────────────────────────────────────────────
 app.use(helmet());
 
-const origins = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
-  : ["http://localhost:3000", "http://localhost:5173", "https://ai-interviewer-v4-frontend-5rtq.onrender.com"];
+// const origins = process.env.ALLOWED_ORIGINS
+//   ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
+//   : ["http://localhost:3000", "http://localhost:5173", "https://ai-interviewer-v4-frontend-5rtq.onrender.com"];
 
-app.use(cors({ origin: (origin, cb) => (!origin || origins.includes(origin) ? cb(null, true) : cb(new Error("CORS blocked"))), credentials: true }));
+// app.use(cors({ origin: (origin, cb) => (!origin || origins.includes(origin) ? cb(null, true) : cb(new Error("CORS blocked"))), credentials: true }));
+app.use(cors({
+  origin: "*"
+}));
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 200, standardHeaders: true, legacyHeaders: false }));
 
 // ── Parsing ───────────────────────────────────────────────────────────────────
