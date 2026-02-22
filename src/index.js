@@ -20,22 +20,31 @@ validateGeminiConfig();
 await connectDB();
 
 // ── Security ──────────────────────────────────────────────────────────────────
-app.use(helmet());
-
-// const origins = process.env.ALLOWED_ORIGINS
-//   ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
-//   : ["http://localhost:3000", "http://localhost:5173", "https://ai-interviewer-v4-frontend-5rtq.onrender.com"];
-
-// app.use(cors({ origin: (origin, cb) => (!origin || origins.includes(origin) ? cb(null, true) : cb(new Error("CORS blocked"))), credentials: true }));
-app.use(cors({
-  origin: "*"
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable CSP for API server
+  crossOriginEmbedderPolicy: false,
 }));
+
+app.use(cors({
+  origin: '*', // Allow ALL origins
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
+
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 200, standardHeaders: true, legacyHeaders: false }));
 
 // ── Parsing ───────────────────────────────────────────────────────────────────
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan(process.env.NODE_ENV === "production" ? "combined" : "dev"));
+
+// ── Force JSON responses ──────────────────────────────────────────────────────
+app.use((req, res, next) => {
+  res.setHeader('Content-Type', 'application/json');
+  next();
+});
+
 
 // ── Health ────────────────────────────────────────────────────────────────────
 app.get("/health", (_, res) => res.json({ success: true, service: "AI Interviewer Backend", status: "healthy", timestamp: new Date().toISOString() }));
