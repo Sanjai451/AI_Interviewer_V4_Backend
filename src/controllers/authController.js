@@ -20,8 +20,8 @@ export async function register(req, res, next) {
 // POST /api/auth/login
 export async function login(req, res, next) {
   try {
+    await saveLog("login request " + req)
     const { email, password } = req.body;
-    await saveLog("login request " + email ,password)
     const user = await User.findOne({ email }).select("+password");
     if (!user || !(await user.comparePassword(password))){
       await saveLog("login failure " + "Invalid email or password")
