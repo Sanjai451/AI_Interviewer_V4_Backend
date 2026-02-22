@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import { signToken } from "../utils/jwt.js";
+import { saveLog } from "../utils/saveLogsMongo.js";
 
 // POST /api/auth/register
 export async function register(req, res, next) {
@@ -19,16 +20,19 @@ export async function register(req, res, next) {
 // POST /api/auth/login
 export async function login(req, res, next) {
   try {
+    await saveLog("login request " + email ,password)
     const { email, password } = req.body;
     const user = await User.findOne({ email }).select("+password");
-    if (!user || !(await user.comparePassword(password)))
+    if (!user || !(await user.comparePassword(password))){
+      await saveLog("login failure " + "Invalid email or password")
       return res.status(401).json({ success: false, error: "Invalid email or password" });
+    }
     if (!user.isActive)
       return res.status(403).json({ success: false, error: "Account deactivated" });
 
     const token = signToken({ id: user._id, role: user.role });
     const userObj = user.toJSON(); // strips password
-
+    await saveLog("login success " + token, userObj)
     res.json({ success: true, token, user: userObj });
   } catch (err) { next(err); }
 }
