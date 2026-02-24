@@ -1,6 +1,5 @@
 import Log from "../models/Log.js";
 
-
 export const saveLog = async (message) => {
   try {
     await Log.create({

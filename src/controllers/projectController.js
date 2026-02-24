@@ -2,6 +2,7 @@ import Project from "../models/Project.js";
 import Interview from "../models/Interview.js";
 import User from "../models/User.js";
 import { generateText, parseGeminiJSON } from "../utils/gemini.js";
+import { sendBatchMails } from "../utils/sendMail.js";
 
 // ── Create project ────────────────────────────────────────────────────────────
 export async function createProject(req, res, next) {
@@ -178,6 +179,28 @@ Respond ONLY as JSON array:
         })
       )
     );
+
+    // sending batch email
+    const recipients = candidates.map(candidate => ({
+    email: candidate.email,
+    name: candidate.name,
+    subject: `Interview Assigned for ${jobRole}`,
+  htmlContent: `
+    <h2>Hello ${candidate.name},</h2>
+    <p>You have been assigned an interview.</p>
+
+    <p><b>Role:</b> ${jobRole}</p>
+    <p><b>Mode:</b> ${mode}</p>
+    <p><b>Duration:</b> ${durationMinutes} minutes</p>
+    <p><b>Tech Stack:</b> ${(techStack || []).join(", ")}</p>
+
+    <p>Please complete before expiry.</p>
+
+    <br>
+    <p>Best regards,<br>${req.user.company}</p>
+  `
+}));
+    sendBatchMails(recipients) 
 
     // Update project jobRole / techStack if not set
     if (!project.jobRole) {

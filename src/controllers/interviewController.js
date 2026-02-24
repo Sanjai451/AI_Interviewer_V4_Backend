@@ -1,6 +1,7 @@
 import Interview from "../models/Interview.js";
 import User from "../models/User.js";
 import { generateText, parseGeminiJSON } from "../utils/gemini.js";
+import { sendEmail } from "../utils/sendMail.js";
 
 // ── HR: Get all candidates (users with role=candidate) ──────────────────────
 export async function getCandidates(req, res, next) {
@@ -133,10 +134,15 @@ Respond ONLY with valid JSON array:
       jdAnalysis: jdAnalysis || null,
       expiresAt,
     });
+    console.log("Assigning interviews")
+    sendEmail(candidateId, jobRole, jobDescription, req.user.company, mode, durationMinutes, expiresAt)
 
     await interview.populate("candidate", "name email");
     res.status(201).json({ success: true, interview });
-  } catch (err) { next(err); }
+  } catch (err) { 
+    console.log("Error while creating interview", err)
+    next(err); 
+  }
 }
 
 // ── HR: Get single interview with full report ────────────────────────────────
